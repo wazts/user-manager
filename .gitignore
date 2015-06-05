@@ -55,3 +55,14 @@ docs/_build/
 
 # PyBuilder
 target/
+
+# C9
+.c9
+
+# Virtual Env
+venv/
+
+# DB
+*.db
+*.sqlite3
+*.sqlite
