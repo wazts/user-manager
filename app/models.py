@@ -8,6 +8,8 @@
 --------------------------------------------------------------------------------
 """
 
+import jwt
+import uuid
 from app import db, bcrypt
 from flask.ext.sqlalchemy import SQLAlchemy
 
@@ -20,6 +22,7 @@ class User(db.Model):
     username = db.Column(db.String(80), unique=True)
     email = db.Column(db.String(120), unique=True)
     password_hash = db.Column(db.String(128))
+    jwt_secret = db.Column(db.String(128))
     
     def hash_password(self, password):
         """ Hash the password for our user
@@ -34,7 +37,28 @@ class User(db.Model):
             password is correct.
         """
         return bcrypt.check_password_hash(self.password_hash, password)
-
+        
+    def generate_login_token (self, newSecret=True):
+        
+        secret = ""
+        if newSecret or self.jwt_secret == "":
+            secret = str(uuid.uuid4())
+        else:
+            secret = self.jwt_secret
+            
+        self.jwt_secret = secret
+        db.session.add (self)
+        db.session.commit()
+        
+        return jwt.encode({'user': self.id}, secret, algorithm='HS256')
+        
+    def verify_login_token (self, token):
+        try:
+            jwt.decode(token, self.jwt_secret, algorithms=['HS256'])
+        except jwt.InvalidTokenError:
+            return None
+        return self
+        
     def __init__(self, username, email, password):
         self.username = username
         self.email = email

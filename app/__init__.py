@@ -9,7 +9,13 @@ from flask.ext.migrate import Migrate
 
 app = Flask(__name__)
 
-app.config.from_object('config')
+
+appType = os.getenv('APP_TYPE', 'DEBUG')
+
+if appType == 'DEBUG':
+	app.config.from_object('config.BaseConfig')
+else:
+	app.config.from_object('config.ProductionConfig')
 
 # Database
 db = SQLAlchemy(app)
